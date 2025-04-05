@@ -1,12 +1,15 @@
 import express from "express"
 import cors from "cors"
 import cookieParser from "cookie-parser"
+import path from "path";
 import morgan from "morgan"
 import helmet from "helmet"
 import dotenv from "dotenv"
-import connectDB from "./config/connectDB.js"
-
 dotenv.config()
+import connectDB from "./config/connectDB.js"
+import userRouter from "./routes/userRoute.js"
+
+
 
 const app = express()
 
@@ -22,11 +25,12 @@ app.use(helmet({
 }))
 
 const PORT = 8080 || process.env.PORT
-
+console.log("Current file path:", import.meta.url);
 
 app.get("/",(req,res)=>{
     res.send("hello welcome back")
 })
+app.use("/api/user",userRouter)
 
 connectDB().then(()=>{
     app.listen(PORT,()=>{
