@@ -8,12 +8,14 @@ const generaterefereshToken = async (userId) => {
     { expiresIn: "7d" }
   );
 
-  const UpdateRefereshToken = await Usermodel.findOne(
+  const UpdateRefereshToken = await Usermodel.updateOne(
     { _id: userId },
     {
         refresh_token: token,
     }
   );
+  return token
+  
 };
 
 export default generaterefereshToken;

@@ -66,15 +66,16 @@ export async function verifyemailController(req, res) {
       });
     }
 
-    const updateUser = await Usermodel.updateOne({_id:code},{
-        verify_email:true
-    })
+    const updateUser = await Usermodel.updateOne(
+      { _id: code },
+      {
+        verify_email: true,
+      }
+    );
 
     return res.json({
-      message:"user Verified "
-    })
-
-
+      message: "user Verified ",
+    });
   } catch (error) {
     res.status(400).json({
       message: error.message || error,
@@ -84,81 +85,85 @@ export async function verifyemailController(req, res) {
 
 //login api
 
-export async function loginUser(req,res){
-    try {
-        
-        const {email,password} = req.body;
+export async function loginUser(req, res) {
+  try {
+    const { email, password } = req.body;
 
-        const user = await Usermodel.findOne({email})
+    const user = await Usermodel.findOne({ email });
 
-        if(!user){
-            return res.status(400).json({
-                message:"user is not register"
-            })
-        }
-        if(user.status !== "Active"){
-            return res.status(402).json({
-                message:"Your email Maybe Inactive or Suspend pls contact the Admin"
-            })
-        }
-
-        const checkpass = await bcrypt.compare(password,user.password)
-
-        if(!checkpass){
-            res.status(400).json({
-                message:"Password is Wrong"
-            })
-        }
-
-        const accessToken = await generateAccessToken(user._id);
-        const refereshToken = await generaterefereshToken(user._id);
-
-        const cookieOption = {
-          httpOnly:true,
-          secure:true,
-          sameSite:'None'
-        }
-
-        res.cookie('accessToken',accessToken,cookieOption)
-        res.cookie('refereshToken',refereshToken,cookieOption)
-
-       return res.json({
-            message:"Login Sucessfully !",
-            data:{
-                accessToken,
-                refereshToken
-            }
-        })
-
-
-
-    } catch (error) {
-        res.status(400).json({
-            message:error.message|| error
-        })
-        console.log(error);
-        
+    if (!user) {
+      return res.status(400).json({
+        message: "user is not register",
+      });
     }
+    if (user.status !== "Active") {
+      return res.status(402).json({
+        message: "Your email Maybe Inactive or Suspend pls contact the Admin",
+      });
+    }
+
+    const checkpass = await bcrypt.compare(password, user.password);
+
+    if (!checkpass) {
+      res.status(400).json({
+        message: "Password is Wrong",
+      });
+    }
+
+    const accessToken = await generateAccessToken(user._id);
+    const refereshToken = await generaterefereshToken(user._id);
+
+    const cookieOption = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+    };
+
+    res.cookie("accessToken", accessToken, cookieOption);
+    res.cookie("refereshToken", refereshToken, cookieOption);
+
+    
+    return res.json({
+      message: "Login Sucessfully !",
+      data: {
+        accessToken,
+        refereshToken,
+      },
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: error.message || error,
+    });
+    console.log(error);
+  }
 }
 
-//logout Api 
+//logout Api
 
-export async function logoutuser(req,res){
-    try {
-        
-        const cookieOption = {
-            httpOnly:true,
-            secure:true,
-            sameSite:'None'
-          }
-  
+export async function logoutuser(req, res) {
+  try {
 
-        res.cookieClear("accessToken",cookieOption)
-        res.cookieClear("refereshToken",cookieOption)
+    const userId = req.userId
 
-    } catch (error) {
-        res.status(400).json({
-            message:error.message||error
-        })
-    }
+    const cookieOption = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+    };
+
+    res.clearCookie("accessToken", cookieOption);
+    res.clearCookie("refereshToken", cookieOption);
+
+    const  removeRefereshToken = await  Usermodel.findByIdAndUpdate(userId,{
+      refresh_token:""
+    })
+
+    res.json({
+      message:"LogOut Successfully"
+    })
+  } catch (error) {
+    res.status(400).json({
+      message: error.message || error,
+    });
+  }
 }
