@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import verfiyEmailTemplete from "../utils/verifyEmailTemplate.js";
 import generateAccessToken from "../utils/generateAccessToken.js";
 import generaterefereshToken from "../utils/generateRefereshToken.js";
+import uploadImageCloud from "../utils/uploadimage.js";
 export async function registerUserController(req, res) {
   try {
     const { name, email, password } = req.body;
@@ -122,7 +123,6 @@ export async function loginUser(req, res) {
     res.cookie("accessToken", accessToken, cookieOption);
     res.cookie("refereshToken", refereshToken, cookieOption);
 
-    
     return res.json({
       message: "Login Sucessfully !",
       data: {
@@ -142,8 +142,7 @@ export async function loginUser(req, res) {
 
 export async function logoutuser(req, res) {
   try {
-
-    const userId = req.userId
+    const userId = req.userId;
 
     const cookieOption = {
       httpOnly: true,
@@ -154,15 +153,41 @@ export async function logoutuser(req, res) {
     res.clearCookie("accessToken", cookieOption);
     res.clearCookie("refereshToken", cookieOption);
 
-    const  removeRefereshToken = await  Usermodel.findByIdAndUpdate(userId,{
-      refresh_token:""
-    })
+    const removeRefereshToken = await Usermodel.findByIdAndUpdate(userId, {
+      refresh_token: "",
+    });
 
     res.json({
-      message:"LogOut Successfully"
-    })
+      message: "LogOut Successfully",
+    });
   } catch (error) {
     res.status(400).json({
+      message: error.message || error,
+    });
+  }
+}
+
+//upload image
+
+export async function uploadAvtar(req, res) {
+  try {
+    const userId = req.userId;
+    const image = req.file;
+    const upload = await uploadImageCloud(image);
+
+    const updateUser = await Usermodel.findByIdAndUpdate(userId,{
+      Avatar : upload.url
+    })
+
+    return res.json({
+      message: "uploaded",
+      data: {
+        _id:userId,
+        url:upload.url
+      },
+    });
+  } catch (error) {
+    res.json({
       message: error.message || error,
     });
   }
